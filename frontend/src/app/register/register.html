@@ -1,0 +1,87 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow">
+        <div class="card-body">
+          <h2 class="card-title text-center mb-4">Register</h2>
+
+          <!-- Angular message (from your component's serverMessage) -->
+          <div *ngIf="serverMessage" class="alert" [class.alert-success]="serverMessage.includes('success')" [class.alert-danger]="!serverMessage.includes('success')">
+            {{ serverMessage }}
+          </div>
+
+          <!-- Reactive form -->
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <div class="mb-3">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-control" formControlName="fullname" minlength="2" maxlength="100" >
+              <small class="text-danger" *ngIf="registerForm.get('fullname')?.touched && registerForm.get('fullname')?.invalid">
+                <span *ngIf="registerForm.get('fullname')?.errors?.['required']">Full name is required.</span>
+                <span *ngIf="registerForm.get('fullname')?.errors?.['minlength']">Full name must be at least 2 characters.</span>
+                <span *ngIf="registerForm.get('fullname')?.errors?.['maxlength']">Full name must be less than 100 characters.</span>
+                <span *ngIf="registerForm.get('fullname')?.errors?.['pattern']">Full name can only contain letters, spaces, hyphens, and apostrophes.</span>
+              </small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" formControlName="email">
+              <small class="text-danger" *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid">
+                Valid email is required.
+              </small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input type="password" class="form-control" formControlName="password" minlength="8">
+              <div class="form-text">Minimum 8 characters, with at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*#?&).</div>
+              <small class="text-danger" *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid">
+                <span *ngIf="registerForm.get('password')?.errors?.['required']">Password is required.</span>
+                <span *ngIf="registerForm.get('password')?.errors?.['minlength']">Password must be at least 8 characters.</span>
+                <span *ngIf="registerForm.get('password')?.errors?.['pattern']">Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.</span>
+              </small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Confirm Password</label>
+              <input type="password" class="form-control" formControlName="confirmPassword">
+              <small class="text-danger" *ngIf="registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.invalid">
+                <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">Please confirm your password.</span>
+                <span *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch']">Passwords do not match.</span>
+              </small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Role</label>
+              <select class="form-select" formControlName="role">
+                <option value="admin">Admin</option>
+                <option value="chef">Chef</option>
+                <option value="manager">Manager</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-control" placeholder="+61 4xx xxx xxx" formControlName="phone">
+              <small class="text-danger" *ngIf="registerForm.get('phone')?.touched && registerForm.get('phone')?.invalid">
+                <span *ngIf="registerForm.get('phone')?.errors?.['pattern']">Please enter a valid Australian phone number (e.g., +61 4xx xxx xxx or 04xx xxx xxx).</span>
+              </small>
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary" [disabled]="loading || registerForm.invalid">
+                {{ loading ? 'Registering…' : 'Register' }}
+              </button>
+            </div>
+          </form>
+
+          <div class="text-center mt-3">
+            <p class="mb-0">Already have an account?
+              <a routerLink="/login-34475338">Login here</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

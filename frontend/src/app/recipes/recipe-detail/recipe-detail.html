@@ -1,0 +1,199 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-outline-secondary" (click)="goBack()">← Back</button>
+      <h2 class="mb-0">{{ L('title') }}</h2>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <!-- Language Selector -->
+      <div class="d-flex align-items-center gap-2 language-selector">
+        <label for="languageSelect" class="form-label mb-0">{{ L('translate') }}:</label>
+        <select 
+          id="languageSelect"
+          class="form-select w-auto" 
+          [value]="lang" 
+          (change)="onLangChange($any($event.target).value)"
+          [disabled]="translating">
+          <option *ngFor="let lang of languages" [value]="lang.code">{{ lang.label }}</option>
+        </select>
+        <span *ngIf="translating" class="spinner-border spinner-border-sm" role="status"></span>
+      </div>
+
+      <!-- Owner Actions -->
+      <div *ngIf="isOwner()" class="d-flex gap-2">
+        <button class="btn btn-outline-primary" (click)="editRecipe()">Edit Recipe</button>
+        <button class="btn btn-outline-danger" (click)="openDeleteModal(deleteModal)">Delete Recipe</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  
+  <!-- Translation Error -->
+  <div *ngIf="translationError" class="alert alert-warning">
+    <strong>Translation Error:</strong> {{ translationError }}
+  </div>
+
+  <div *ngIf="recipe && !loading" class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">{{ getDisplayTitle() }}</h3>
+          <small class="text-muted">{{ L('by') }} {{ recipe.chef }}</small>
+          <div *ngIf="translated && lang !== 'en'" class="translation-indicator mt-1">
+            <small class="text-muted">{{ L('translated') }} from {{ L('original') }}</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Recipe Meta Information -->
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <strong>{{ L('cuisineType') }}:</strong><br>
+              <span class="badge bg-primary">{{ LV('cuisineType', recipe.cuisineType) }}</span>
+            </div>
+            <div class="col-md-3">
+              <strong>{{ L('mealType') }}:</strong><br>
+              <span class="badge bg-info">{{ LV('mealType', recipe.mealType) }}</span>
+            </div>
+            <div class="col-md-3">
+              <strong>{{ L('prepTime') }}:</strong><br>
+              <span class="text-muted">{{ recipe.prepTime }} {{ L('minutes') }}</span>
+            </div>
+            <div class="col-md-3">
+              <strong>{{ L('difficulty') }}:</strong><br>
+              <span class="badge" [ngClass]="{
+                'bg-success': recipe.difficulty === 'Easy',
+                'bg-warning': recipe.difficulty === 'Medium',
+                'bg-danger': recipe.difficulty === 'Hard'
+              }">{{ LV('difficulty', recipe.difficulty) }}</span>
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <strong>{{ L('servings') }}:</strong> {{ recipe.servings }}
+            </div>
+            <div class="col-md-6">
+              <strong>{{ L('created') }}:</strong> {{ formatDate(recipe.createdDate) }}
+            </div>
+          </div>
+
+          <!-- Ingredients Section -->
+          <div class="mb-4">
+            <h4 class="text-primary">{{ L('ingredients') }}</h4>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>{{ L('ingredientCol') }}</th>
+                    <th>{{ L('quantityCol') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let ingredient of getDisplayIngredients()">
+                    <td>
+                      <span [class.translated-content]="translated && lang !== 'en'">{{ ingredient.name }}</span>
+                      <div *ngIf="translated && lang !== 'en'" class="original-content">
+                        <small class="text-muted">{{ recipe.ingredients[getDisplayIngredients().indexOf(ingredient)]?.name }}</small>
+                      </div>
+                    </td>
+                    <td>{{ ingredient.quantity }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Instructions Section -->
+          <div class="mb-4">
+            <h4 class="text-primary">{{ L('instructions') }}</h4>
+            <div class="mb-2 d-flex align-items-center gap-2">
+              <button class="btn btn-outline-dark btn-sm" (click)="speakInstructions()" [disabled]="ttsLoading">
+                {{ ttsLoading ? 'Generating...' : 'Listen' }}
+              </button>
+              <span *ngIf="ttsError" class="text-danger small">{{ ttsError }}</span>
+            </div>
+            <ol class="list-group list-group-numbered">
+              <li *ngFor="let instruction of getDisplayInstructions(); let i = index" class="list-group-item">
+                <span [class.translated-content]="translated && lang !== 'en'">{{ instruction }}</span>
+                <div *ngIf="translated && lang !== 'en'" class="original-content">
+                  <small class="text-muted">{{ recipe.instructions[i] }}</small>
+                </div>
+              </li>
+            </ol>
+            <div *ngIf="ttsAudioUrl" class="mt-2">
+              <audio [src]="ttsAudioUrl" controls></audio>
+            </div>
+          </div>
+
+          <!-- AI Health Analysis Section -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4 class="text-primary mb-0">{{ L('analyzeHealth') }}</h4>
+              <div class="d-flex gap-2">
+                <button 
+                  class="btn btn-outline-success" 
+                  (click)="analyzeHealth()" 
+                  [disabled]="analyzingHealth">
+                  <span *ngIf="analyzingHealth" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  {{ analyzingHealth ? 'Analyzing...' : L('analyzeHealth') }}
+                </button>
+                <button 
+                  *ngIf="healthAnalysis" 
+                  class="btn btn-outline-secondary btn-sm" 
+                  (click)="clearHealthAnalysis()">
+                  {{ L('clear') }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Health Analysis Results -->
+            <div *ngIf="healthAnalysis" class="card border-success">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0">🤖 AI Health Analysis</h5>
+              </div>
+              <div class="card-body">
+                <div class="ai-analysis-content" [innerHTML]="healthAnalysis.analysis | markdown"></div>
+              </div>
+            </div>
+
+            <!-- Health Analysis Error -->
+            <div *ngIf="healthError" class="alert alert-danger">
+              <strong>Analysis Error:</strong> {{ healthError }}
+            </div>
+          </div>
+
+          <!-- Recipe ID (for debugging) -->
+          <div class="mt-4 pt-3 border-top">
+            <small class="text-muted">
+              <strong>Recipe ID:</strong> {{ recipe.recipeId }} | 
+              <strong>Owner ID:</strong> {{ recipe.ownerId }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Delete Recipe</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <p>Are you sure you want to delete this recipe?</p>
+    <p><small class="text-muted">This action cannot be undone.</small></p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-danger" (click)="modal.close('yes')">Yes, Delete</button>
+    <button type="button" class="btn btn-secondary" (click)="modal.close('no')">Cancel</button>
+  </div>
+</ng-template>
