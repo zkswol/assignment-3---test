@@ -20,7 +20,7 @@ export interface Recipe {
 
 @Injectable({ providedIn: 'root' })
 export class RecipeService {
-  private apiUrl = '';
+  private apiUrl = 'http://34.129.3.229:8080';
   constructor(private http: HttpClient) {}
 
   // Get all recipes (for chefs)

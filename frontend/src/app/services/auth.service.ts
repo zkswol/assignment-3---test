@@ -10,16 +10,16 @@ export class AuthService {
   constructor(private http: HttpClient, private router: Router) {}
 
   register(data: any) {
-    return this.http.post('/register-34475338', data);
+    return this.http.post('http://34.129.3.229:8080/register-34475338', data);
   }
 
   login(data: any) {
-    return this.http.post<any>('/login-34475338', data);
+    return this.http.post<any>('http://34.129.3.229:8080/login-34475338', data);
   }
 
   // call this after login if backend doesn't return user
   fetchMe(userId: string) {
-    return this.http.get<any>(`/me-34475338?userId=${userId}`);
+    return this.http.get<any>(`http://34.129.3.229:8080/me-34475338?userId=${userId}`);
   }
 
   setUser(user: any) {

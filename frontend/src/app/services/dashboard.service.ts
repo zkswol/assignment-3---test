@@ -5,7 +5,7 @@ export type Stats = { users: number; recipes: number; inventory: number };
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  api = '';
+  api = 'http://34.129.3.229:8080';
   stats = signal<Stats | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);

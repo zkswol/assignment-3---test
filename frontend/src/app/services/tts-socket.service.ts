@@ -9,7 +9,7 @@ export class TtsSocketService {
 
   connect() {
     if (!this.socket) {
-      this.socket = io('http://localhost:8080');
+      this.socket = io('http://34.129.3.229:8080');
       this.socket.on('tts:response', (data) => this.response$.next(data));
     }
   }
