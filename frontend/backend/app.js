@@ -37,21 +37,7 @@ app.use('/', recipeRoutes);
 app.use('/', inventoryRoutes);
 app.use('/', aiRoutes);
 app.use('/', statsRoutes);
-
-// Serve Angular static files
-const distPath = path.join(__dirname, '..', 'dist', 'frontend', 'browser');
-app.use(express.static(distPath));
-
-// SPA fallback: serve index.html for unmatched GET requests (after API/static, before 404)
-app.get('*', (req, res, next) => {
-  // Only handle HTML navigation requests; skip if request looks like an API or asset fetch
-  const acceptsHtml = req.accepts('html');
-  const hasExtension = path.extname(req.path) !== '';
-  if (acceptsHtml && !hasExtension) {
-    return res.sendFile(path.join(distPath, 'index.html'));
-  }
-  return next();
-});
+app.use(express.static("./dist/frontend/browser"));
 
 // Error handling middleware
 app.use(notFound);
